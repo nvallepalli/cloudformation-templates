@@ -1,0 +1,43 @@
+{
+ "AWSTemplateFormatVersion":"2010-09-09",
+ "Description":"AWS CloudFormation Sample Template IAM_Users_Groups_and_Policies",
+ "Parameters":{
+   "Password":{
+     "Type": "String",
+     "Default": "myP@ssW0rd"
+   },
+   "Usern":{
+     "Type": "String",
+     "Default": "quad-cloud-user-01"
+   }
+
+ },
+ "Resources":{
+   "myuser" : {
+   "Type" : "AWS::IAM::User",
+   "Properties" : {
+     "LoginProfile" : {
+     "Password" : {"Ref": "Password"}},
+     "Groups":[{"Ref": "quadgroup"}],
+     "UserName":{"Ref": "Usern"}
+   }
+ },
+
+"quadgroup":{
+    "Type": "AWS::IAM::Group",
+    "Properties": {
+      "GroupName":"quad-cloud-cf-dev",
+      "Policies":[{
+        "PolicyName":"myapppolicy",
+        "PolicyDocument":{
+          "Version":"2012-10-17",
+          "Statement":[
+            {"Effect":"Allow","Action":["ec2:*"],"Resource":["*"]},
+            {"Effect":"Allow","Action":["cloudformation:*"],"Resource":["*"]}]
+
+ }
+ }]
+ }
+}
+}
+}

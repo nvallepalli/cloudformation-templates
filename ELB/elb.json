@@ -1,0 +1,107 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "ELB creation template",
+  "Parameters": {
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair.",
+      "Default": "ec2-prasanth"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t2.micro"
+    },
+    "ImageIds": {
+      "Type": "String",
+      "Default": "ami-a4c7edb2"
+    },
+    "WebServerPort": {
+      "Type": "String",
+      "Default": "80"
+    },
+    "SecurityGroupA" : {
+      "Description" : "Security Group for the instances.",
+      "Type" : "String",
+      "Default": "cloud-prasanth01-ec2-sg"
+     }
+  },
+  "Resources": {
+    "WebInstance01": {
+    "Type": "AWS::EC2::Instance",
+    "Properties": {
+      "ImageId": {"Ref": "ImageIds"},
+      "InstanceType": {"Ref": "InstanceType"},
+      "SecurityGroups": [{"Ref": "SecurityGroupA"}],
+      "KeyName": {"Ref": "KeyName"},
+      "UserData": {
+        "Fn::Base64": {
+          "Fn::Join": [
+            "",
+            [
+              "#!/bin/bash -xe \n",
+              "sudo yum update -y \n",
+              "sudo yum update -y aws-cfn-bootstrap\n",
+              "sudo yum install -y httpd || error_exit 'Failed to install Apache' \n",
+              "/sbin/service httpd start || error_exit 'Failed to start Apache' \n",
+              "cd /var/www/html/ \n",
+              "echo '<html><h1>Hello from Quad-Cloud</h1></html>' > hello.html \n"
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "WebInstance02": {
+    "Type": "AWS::EC2::Instance",
+    "Properties": {
+      "ImageId": {"Ref": "ImageIds"},
+      "InstanceType": {"Ref": "InstanceType"},
+      "SecurityGroups": ["cloud-prasanth01-ec2-sg"],
+      "KeyName": {"Ref": "KeyName"},
+      "UserData": {
+        "Fn::Base64": {
+          "Fn::Join": [
+            "",
+            [
+              "#!/bin/bash -xe\n",
+              "sudo yum update -y",
+              "sudo yum update -y aws-cfn-bootstrap\n",
+              "sudo yum install -y httpd || error_exit 'Failed to install Apache' \n",
+              "/sbin/service httpd start || error_exit 'Failed to start Apache' \n",
+              "cd /var/www/html/ \n",
+              "echo '<html><h1>Hello from Quad-Cloud</h1></html>' > hello.html \n"
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "MyLoadBalancer": {
+    "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+    "Properties": {
+      "AvailabilityZones": {
+        "Fn::GetAZs": ""
+      },
+      "Instances": [
+        {"Ref": "WebInstance01"},
+        {"Ref": "WebInstance02"}],
+      "Listeners": [
+        {
+          "LoadBalancerPort": "80",
+          "InstancePort": {"Ref": "WebServerPort"},
+          "Protocol": "HTTP"
+        }
+      ],
+      "HealthCheck": {
+        "Target": {
+          "Fn::Join": ["",["HTTP:",{"Ref": "WebServerPort"},"/"]]
+        },
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    }
+  }
+}
+}

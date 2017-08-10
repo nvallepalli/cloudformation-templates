@@ -1,0 +1,65 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+"Description": "Aurora Db Stack",
+"Parameters": {
+  "DbUsername": {
+        "Description": "App Db Username",
+        "Type": "String",
+        "MinLength": "5",
+        "MaxLength": "15",
+        "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+        "Default": "prasanth"
+      },
+  "DbPassword": {
+        "Description": "App Db Password",
+        "NoEcho": "true",
+        "Type": "String",
+        "MinLength": "8",
+        "MaxLength": "41",
+        "AllowedPattern": "[a-zA-Z0-9]*",
+        "Default": "prasanth"
+      },
+  "DbType": {
+        "Description": "App Db server RDS instance type",
+        "Type": "String",
+        "Default": "db.t2.medium",
+        "AllowedValues": [
+            "db.t2.small", "db.t2.medium", "db.r3.large", "db.r3.xlarge",
+            "db.r3.2xlarge", "db.r3.4xlarge", "db.r3.8xlarge"]
+},
+  "DBIdentifierName": {
+        "Description": "The string that will be prefixed to each instance name",
+        "Type": "String",
+        "MinLength": "3",
+        "MaxLength": "10",
+        "AllowedPattern": "[a-z0-9]*",
+        "Default": "prasanthdb"
+      },
+  "DBSecurityGroup": {
+              "Type": "String",
+              "Description": "Security Group id",
+              "Default": "sg-d36b11ad"
+          }
+},
+"Resources": {
+  "DBCluster": {
+        "Type": "AWS::RDS::DBCluster",
+        "Properties": {
+            "Engine": "aurora",
+            "MasterUsername": {"Ref": "DbUsername"},
+            "MasterUserPassword": {"Ref": "DbPassword"},
+            "VpcSecurityGroupIds": [{"Ref": "DBSecurityGroup"}]
+        }
+    },
+  "RDSinstance": {
+        "Type": "AWS::RDS::DBInstance",
+        "Properties": {
+          "DBClusterIdentifier": {"Ref": "DBCluster"},
+          "DBInstanceIdentifier": {"Ref": "DBIdentifierName"},
+          "DBInstanceClass": {"Ref": "DbType"},
+          "Engine": "aurora",
+          "PubliclyAccessible": "true",
+}
+}
+}
+}
